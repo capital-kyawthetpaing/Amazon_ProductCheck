@@ -28,90 +28,59 @@ namespace AmazonProductCheck
         private void Form1_Load(object sender, EventArgs e)
         {
             create_Table();
+
+            treeView1.BeginUpdate();
+
+            string url = "https://www.amazon.co.jp/gp/bestsellers/sports/15337751/ref=zg_bs_unv_sg_2_15314601_1";
+            treeView1.Nodes.Add(url, "自転車");
+
+            GetCategory(url, treeView1.Nodes[0]);
+            treeView1.EndUpdate();
+        }
+        private void GetCategory(string url, TreeNode parent)
+        {
+
             HtmlAgilityPack.HtmlDocument document1 = new HtmlAgilityPack.HtmlDocument();
             string htmlCode1;
             using (WebClient client = new WebClient())
             {
-                var htmlData1 = client.DownloadData("https://www.amazon.co.jp/gp/bestsellers/sports/15337751/ref=zg_bs_nav_sg_1_sg");
+                var htmlData1 = client.DownloadData(url);
                 htmlCode1 = Encoding.UTF8.GetString(htmlData1);
+                document1.LoadHtml(htmlCode1);
             }
-            document1.LoadHtml(htmlCode1);
 
-            if (document1.DocumentNode.SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//li//a") != null)
+            var nc4 = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//ul//ul//span[@class='zg_selected']");
+            var nc3 = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//ul//span[@class='zg_selected']");
+            var nc2 = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//span[@class='zg_selected']");
+            var nc1 = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//span[@class='zg_selected']");
+            HtmlNodeCollection nc = null;
+            if (nc4 != null)
             {
-                HtmlNode[] nodes = document1.DocumentNode
-                                                .SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//li//a").ToArray();
-                treeView1.BeginUpdate();
-                foreach (HtmlNode item in nodes)
-                {
-                    var parentNode = treeView1.Nodes.Add(item.Attributes["href"].Value, item.InnerHtml);
+                nc = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//ul//ul//ul//a");
+            }
+            else if (nc3 != null)
+            {
+                nc = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//ul//ul//a");
+            }
+            else if (nc2 != null)
+            {
+                nc = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//ul//a");
+            }
+            else if (nc1 != null)
+            {
+                nc = document1.DocumentNode.SelectNodes("//ul[@id='zg_browseRoot']//ul//ul//ul//a");
+            }
 
-                    string hrefValue = item.Attributes["href"].Value;
-                    HtmlAgilityPack.HtmlDocument document2 = new HtmlAgilityPack.HtmlDocument();
-                    string htmlCode2;
-                    using (WebClient client = new WebClient())
-                    {
-                        var htmlData2 = client.DownloadData(hrefValue);
-                        htmlCode2 = Encoding.UTF8.GetString(htmlData2);
-                    }
-                    document2.LoadHtml(htmlCode2);
-
-                    if (document2.DocumentNode.SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//li//a") != null)
-                    {
-                        HtmlNode[] nodes2 = document2.DocumentNode
-                                                        .SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//li//a").ToArray();
-                        if (nodes2 != null)
-                        {
-                            foreach (HtmlNode item1 in nodes2)
-                            {
-                                var subparent = parentNode.Nodes.Add(item1.Attributes["href"].Value, item1.InnerHtml);
-
-                                string lnk = item1.Attributes["href"].Value;
-                                HtmlAgilityPack.HtmlDocument document3 = new HtmlAgilityPack.HtmlDocument();
-                                string htmlCode3;
-                                using (WebClient client = new WebClient())
-                                {
-                                    var htmlData3 = client.DownloadData(lnk);
-                                    htmlCode3 = Encoding.UTF8.GetString(htmlData3);
-                                }
-                                document3.LoadHtml(htmlCode3);
-                                if(item1.InnerHtml == "子ども用自転車")
-                                {
-                                    if (document3.DocumentNode.SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//li") != null)
-                                    {
-                                        HtmlNode[] nodes3 = document3.DocumentNode
-                                                                        .SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//li//a").ToArray();
-                                        if (nodes3 != null)
-                                        {
-                                            foreach (HtmlNode item3 in nodes3)
-                                            {
-                                                subparent.Nodes.Add(item3.Attributes["href"].Value, item3.InnerHtml);
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (document3.DocumentNode.SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//ul//li") != null)
-                                {
-                                    HtmlNode[] nodes3 = document3.DocumentNode
-                                                                    .SelectNodes("//div[@class='a-fixed-left-grid-col a-col-left']//ul[@id='zg_browseRoot']//ul//ul//ul//ul//ul//li//a").ToArray();
-                                    if (nodes3 != null)
-                                    {
-                                        foreach (HtmlNode item3 in nodes3)
-                                        {
-                                            subparent.Nodes.Add(item3.Attributes["href"].Value, item3.InnerHtml);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                treeView1.EndUpdate();
+            if (nc == null)
+                return;
+            HtmlNode[] nodes = nc.ToArray();
+            foreach (HtmlNode item in nodes)
+            {
+                var child = parent.Nodes.Add(item.Attributes["href"].Value, item.InnerHtml);
+                GetCategory(item.Attributes["href"].Value, child);
             }
 
         }
-
         private void treeView1_AfterCheck(object sender, TreeViewEventArgs e)
         {
             // The code only executes if the user caused the checked state to change.
@@ -145,163 +114,101 @@ namespace AmazonProductCheck
             string categoryname = string.Empty;
             categoryurl = treeView1.SelectedNode.Name;
             categoryname = treeView1.SelectedNode.Text;
-
+        
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
             string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
             ChromeOptions options = new ChromeOptions();
             options.AddArguments("user-data-dir=" + path);
-            //options.AddArgument("historyItem ");
             options.AddArguments("profile-directory=Default");
             options.AddArgument("start-maximized");
-            // options.AddArgument("--headlesss");
              IWebDriver Chrome = new ChromeDriver(service, options);
-
-            //Firefox = new ChromeDriver(service, options);
-            //ChromeDriverService serviceBB = ChromeDriverService.CreateDefaultService();
-            //serviceBB.HideCommandPromptWindow = true;      
-            //using (IWebDriver Chrome = new ChromeDriver(serviceBB))
-            //{
-            Chrome.Manage().Window.Maximize();
+          
             if (!Amazon_Chrome(Chrome, categoryurl, categoryname))
+            {
+                try
                 {
-                    try
+                    this.Refresh();
+                    Refresh();
+                    this.Hide();
+                    Form1 ss = new Form1();
+                    ss.Show();
+                    Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                    foreach (var chromeDriverProcess in chromeDriverProcesses)
                     {
-                        this.Refresh();
-                        Refresh();
-                        this.Hide();
-                        Form1 ss = new Form1();
-                        ss.Show();
-                        Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                        foreach (var chromeDriverProcess in chromeDriverProcesses)
-                        {
-                            chromeDriverProcess.Kill();
-                        }
-                        return;
+                        chromeDriverProcess.Kill();
                     }
-                    catch
-                    {
-                    }
-               }
-                else
+                    return;
+                }
+                catch
+                {}
+            }
+            else
+            {
+                try
                 {
-                    try
+                    Chrome.Close();
+                    Chrome.Quit();
+                    Process[] firefoxDriverProcesses = Process.GetProcessesByName("geckodriver");
+                    foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
                     {
-                        Chrome.Close();
-                        Chrome.Quit();
-                    }
-                    catch
-                    {
+                        firefoxDriverProcesse.Kill();
                     }
                 }
-           // }
+                catch
+                {}
+            }
         }
-        private bool Amazon_Chrome(IWebDriver chrome, string categoryurl,string categoryname)
-        {        
+        private bool Amazon_Chrome(IWebDriver chrome, string categoryurl, string categoryname)
+        {
             try
-            {               
+            {
                 for (int i = 1; i <= 10; i++)
                 {
                     if (i <= 50)
                     {
                         //chrome.Url = "https://www.amazon.co.jp/gp/bestsellers/sports/15314601/ref=zg_bs_nav_sg_2_15337751/358-4226875-7101947";
                         chrome.Url = categoryurl;
-                        //Thread.Sleep(1000);
+                        Thread.Sleep(1000);
 
-
-                       var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
-                        chrome.Url = itemcode_url;
-                            //Thread.Sleep(1000);
-
-                            var itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-
-                            var brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
-
-                            string price = string.Empty;
-                            if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
-                            {
-                                //do if exists
-                                 price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
-                            }
-                            else
-                            {
-                                //do if does not exists
-                                price = "一時的に在庫切れ";
-                            }
-                            string ASIN = string.Empty;
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
-                            {
-                                //do if exists
-                                 ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
-                            }
-                            else
-                            {
-                                //do if does not exists
-                                 ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
-                            }
-                            
-                        chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
-                        //Thread.Sleep(1000);
-                        string EAN = string.Empty;
-
-                           
-                             if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
-                            {
-                                if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
-                                {
-                                    EAN= chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
-                                }
-                                else
-                                {
-                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
-                                }
-
-                            }
-                            else
-                            {
-                                EAN = "";
-                            }
-
-
-                            if (EAN.Contains("EAN:"))
-                            {
-                                EAN = EAN.Replace("EAN:", "");
-                            }
-                            else
-                            {
-                                EAN = "";
-                            }
-
-                            DataResult(i.ToString(), categoryname, itemname,brandname,price,ASIN, EAN);
-
-                    }
-                    else
-                    {
-                        int j = 0;
-                        j = i - 50;
-                        //chrome.Url = "https://www.amazon.co.jp/-/en/gp/bestsellers/sports/15314601/ref=zg_bs_pg_2?ie=UTF8&pg=2";
-                        chrome.Url = categoryurl + "&pg=2";
 
                         var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
-
                         chrome.Url = itemcode_url;
+                        Thread.Sleep(1000);
 
+                        string itemname = string.Empty;
+                         itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
 
-                        var itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-
-                        var brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                        string brandname = string.Empty;
+                        if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+                        {
+                            //do if exists
+                            brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                        }
+                        else
+                        {
+                            //do if does not exists
+                            brandname = "";
+                        }
+                        
 
                         string price = string.Empty;
                         if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
                         {
                             //do if exists
                             price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                            if (price.Contains("￥"))
+                            {
+                                price = price.Replace("￥", "");
+                            }
+
                         }
                         else
                         {
                             //do if does not exists
-                            price = "一時的に在庫切れ";
+                            price = "0";
                         }
+
                         string ASIN = string.Empty;
                         if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
                         {
@@ -315,7 +222,7 @@ namespace AmazonProductCheck
                         }
 
                         chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
-                        //Thread.Sleep(1000);
+                        Thread.Sleep(1000);
                         string EAN = string.Empty;
 
 
@@ -335,20 +242,89 @@ namespace AmazonProductCheck
                         {
                             EAN = "";
                         }
-
-
                         if (EAN.Contains("EAN:"))
                         {
                             EAN = EAN.Replace("EAN:", "");
+                        }
+
+                        DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
+
+                    }
+                    else
+                    {
+                        int j = 0;
+                        j = i - 50;
+                        //chrome.Url = "https://www.amazon.co.jp/-/en/gp/bestsellers/sports/15314601/ref=zg_bs_pg_2?ie=UTF8&pg=2";
+                        chrome.Url = categoryurl + "&pg=2";
+                       
+                        var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
+                        chrome.Url = itemcode_url;
+                        Thread.Sleep(1000);
+
+                        string itemname = string.Empty;
+                        itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
+
+                        string brandname = string.Empty;
+                        if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+                        {
+                            //do if exists
+                            brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                        }
+                        else
+                        {
+                            //do if does not exists
+                            brandname = "";
+                        }
+
+                        string price = string.Empty;
+                        if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
+                        {
+                            //do if exists
+                            price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                        }
+                        else
+                        {
+                            //do if does not exists
+                            price = "0";
+                        }
+                        string ASIN = string.Empty;
+                        if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                        {
+                            //do if exists
+                            ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                        }
+                        else
+                        {
+                            //do if does not exists
+                            ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
+                        }
+
+                        chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
+                        Thread.Sleep(1000);
+                        string EAN = string.Empty;
+
+
+                        if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
+                        {
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                            {
+                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                            }
+                            else
+                            {
+                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                            }
+
                         }
                         else
                         {
                             EAN = "";
                         }
-
+                        if (EAN.Contains("EAN:"))
+                        {
+                            EAN = EAN.Replace("EAN:", "");
+                        }
                         DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
-
-
                     }
 
                 }
@@ -370,6 +346,7 @@ namespace AmazonProductCheck
 
             return true;
         }
+
         private bool IsElementPresent(IWebDriver chrome,By by)
         {
             try
@@ -382,7 +359,6 @@ namespace AmazonProductCheck
                 return false;
             }
         }
-
         System.Data.DataTable dtResult;
         string outdir = @"D:\New PJ\Amazon\Export_XML";
         public static string connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
