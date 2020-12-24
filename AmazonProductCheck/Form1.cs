@@ -28,7 +28,6 @@ namespace AmazonProductCheck
         private void Form1_Load(object sender, EventArgs e)
         {
             create_Table();
-
             treeView1.BeginUpdate();
 
             string url = "https://www.amazon.co.jp/gp/bestsellers/sports/15337751/ref=zg_bs_unv_sg_2_15314601_1";
@@ -110,54 +109,7 @@ namespace AmazonProductCheck
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string categoryurl = string.Empty;
-            string categoryname = string.Empty;
-            categoryurl = treeView1.SelectedNode.Name;
-            categoryname = treeView1.SelectedNode.Text;
-        
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.HideCommandPromptWindow = true;
-            string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
-            ChromeOptions options = new ChromeOptions();
-            options.AddArguments("user-data-dir=" + path);
-            options.AddArguments("profile-directory=Default");
-            options.AddArgument("start-maximized");
-             IWebDriver Chrome = new ChromeDriver(service, options);
-          
-            if (!Amazon_Chrome(Chrome, categoryurl, categoryname))
-            {
-                try
-                {
-                    this.Refresh();
-                    Refresh();
-                    this.Hide();
-                    Form1 ss = new Form1();
-                    ss.Show();
-                    Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                    foreach (var chromeDriverProcess in chromeDriverProcesses)
-                    {
-                        chromeDriverProcess.Kill();
-                    }
-                    return;
-                }
-                catch
-                {}
-            }
-            else
-            {
-                try
-                {
-                    Chrome.Close();
-                    Chrome.Quit();
-                    Process[] firefoxDriverProcesses = Process.GetProcessesByName("geckodriver");
-                    foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
-                    {
-                        firefoxDriverProcesse.Kill();
-                    }
-                }
-                catch
-                {}
-            }
+            Environment.Exit(0);
         }
         private bool Amazon_Chrome(IWebDriver chrome, string categoryurl, string categoryname)
         {
@@ -170,7 +122,6 @@ namespace AmazonProductCheck
                         //chrome.Url = "https://www.amazon.co.jp/gp/bestsellers/sports/15314601/ref=zg_bs_nav_sg_2_15337751/358-4226875-7101947";
                         chrome.Url = categoryurl;
                         Thread.Sleep(1000);
-
 
                         var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
                         chrome.Url = itemcode_url;
@@ -240,7 +191,10 @@ namespace AmazonProductCheck
                         }
                         else
                         {
-                            EAN = "";
+                            chrome.Close();
+                            chrome.Quit();
+                            MessageBox.Show(this, "Please login to EAN code!");
+                            return false;
                         }
                         if (EAN.Contains("EAN:"))
                         {
@@ -318,7 +272,10 @@ namespace AmazonProductCheck
                         }
                         else
                         {
-                            EAN = "";
+                            chrome.Close();
+                            chrome.Quit();
+                            MessageBox.Show(this, "Please login to EAN code!");
+                            return false;
                         }
                         if (EAN.Contains("EAN:"))
                         {
@@ -332,19 +289,19 @@ namespace AmazonProductCheck
                 chrome.Quit();
                 ReleaseOutputFile();
                 //InsertData();
-                Process[] firefoxDriverProcesses = Process.GetProcessesByName("geckodriver");
+                Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                 foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
                 {
                     firefoxDriverProcesse.Kill();
                 }
+                return true;
             }
             catch (ThreadInterruptedException e)
             {
                 Environment.Exit(0);
+                return false;
             }
-
-
-            return true;
+           
         }
 
         private bool IsElementPresent(IWebDriver chrome,By by)
@@ -533,6 +490,64 @@ namespace AmazonProductCheck
             da.Fill(dt);
             da.SelectCommand.Connection.Close();
             return dt;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            string categoryurl = string.Empty;
+            string categoryname = string.Empty;
+            categoryurl = treeView1.SelectedNode.Name;
+            categoryname = treeView1.SelectedNode.Text;
+
+            Process[] chromeDriverProcesse = Process.GetProcessesByName("ChromeDriver");
+            foreach (var chromeDriverProces in chromeDriverProcesse)
+            {
+                chromeDriverProces.Kill();
+            }
+
+            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+            service.HideCommandPromptWindow = true;
+            string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
+            ChromeOptions options = new ChromeOptions();
+            //options.AddArguments("user-data-dir=" + path);
+            //options.AddArguments("profile-directory=Default");
+            options.AddArgument("start-maximized");
+            IWebDriver Chrome = new ChromeDriver(service, options);
+
+            if (!Amazon_Chrome(Chrome, categoryurl, categoryname))
+            {
+                try
+                {
+                    this.Refresh();
+                    Refresh();
+                    this.Hide();
+                    Form1 ss = new Form1();
+                    ss.Show();
+                    Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                    foreach (var chromeDriverProcess in chromeDriverProcesses)
+                    {
+                        chromeDriverProcess.Kill();
+                    }
+                    return;
+                }
+                catch
+                { }
+            }
+            else
+            {
+                try
+                {
+                    Chrome.Close();
+                    Chrome.Quit();
+                    Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                    foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
+                    {
+                        firefoxDriverProcesse.Kill();
+                    }
+                }
+                catch
+                { }
+            }
         }
     }
 }
