@@ -16,6 +16,7 @@ using NPOI.XSSF.UserModel;
 using System.Data.SqlClient;
 using System.Data;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace AmazonProductCheck
 {
@@ -139,188 +140,201 @@ namespace AmazonProductCheck
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var list = new List<TreeNode>();
-            LookupChecks(treeView1.Nodes, list);
-            //Environment.Exit(0);
+            if(MessageBox.Show("Do you really want to exit?","Confirm",MessageBoxButtons.OKCancel,MessageBoxIcon.Question) == DialogResult.OK)
+                Environment.Exit(0);
         }
-        private bool Amazon_Chrome(IWebDriver chrome, string categoryurl, string categoryname)
+        private bool Amazon_Chrome(IWebDriver chrome, List<TreeNode> catlist)
         {
             try
             {
-                for (int i = 1; i <= 10; i++)
+                foreach (var category in catlist)
                 {
-                    if (i <= 50)
-                    {
-                        //chrome.Url = "https://www.amazon.co.jp/gp/bestsellers/sports/15314601/ref=zg_bs_nav_sg_2_15337751/358-4226875-7101947";
-                        chrome.Url = categoryurl;
-                        Thread.Sleep(1000);
+                    string categoryurl = string.Empty;
+                    string categoryname = string.Empty;
+                    string itemname = string.Empty;
+                    string brandname = string.Empty;
+                    string price = string.Empty;
+                    string ASIN = string.Empty;
+                    string EAN = string.Empty;
 
-                        var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
-                        chrome.Url = itemcode_url;
-                        Thread.Sleep(1000);
-
-                        string itemname = string.Empty;
-                         itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-
-                        string brandname = string.Empty;
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+                    for (int i = 51; i <= 100; i++)
+                    {                   
+                        if (i <= 50)
                         {
-                            //do if exists
-                            brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            brandname = "";
-                        }
-                        
+                            //chrome.Url = "https://www.amazon.co.jp/gp/bestsellers/sports/15314601/ref=zg_bs_nav_sg_2_15337751/358-4226875-7101947";
+                            categoryurl = category.Name;
+                            categoryname = category.Text;
 
-                        string price = string.Empty;
-                        if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
-                        {
-                            //do if exists
-                            price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
-                            if (price.Contains("￥"))
+                            chrome.Url = categoryurl;
+                            Thread.Sleep(1000);
+
+                            var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
+                            chrome.Url = itemcode_url;
+                            Thread.Sleep(1000);
+                            
+                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
+                            
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
                             {
-                                price = price.Replace("￥", "");
-                            }
-
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            price = "0";
-                        }
-
-                        string ASIN = string.Empty;
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
-                        {
-                            //do if exists
-                            ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
-                        }
-
-                        chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
-                        Thread.Sleep(1000);
-                        string EAN = string.Empty;
-
-
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
-                        {
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
-                            {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                //do if exists
+                                brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
                             }
                             else
                             {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                //do if does not exists
+                                brandname = "";
                             }
-
-                        }
-                        else
-                        {
-                            chrome.Close();
-                            chrome.Quit();
-                            MessageBox.Show(this, "Please login to EAN code!");
-                            return false;
-                        }
-                        if (EAN.Contains("EAN:"))
-                        {
-                            EAN = EAN.Replace("EAN:", "");
-                        }
-
-                        DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
-
-                    }
-                    else
-                    {
-                        int j = 0;
-                        j = i - 50;
-                        //chrome.Url = "https://www.amazon.co.jp/-/en/gp/bestsellers/sports/15314601/ref=zg_bs_pg_2?ie=UTF8&pg=2";
-                        chrome.Url = categoryurl + "&pg=2";
-                       
-                        var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
-                        chrome.Url = itemcode_url;
-                        Thread.Sleep(1000);
-
-                        string itemname = string.Empty;
-                        itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-
-                        string brandname = string.Empty;
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
-                        {
-                            //do if exists
-                            brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            brandname = "";
-                        }
-
-                        string price = string.Empty;
-                        if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
-                        {
-                            //do if exists
-                            price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            price = "0";
-                        }
-                        string ASIN = string.Empty;
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
-                        {
-                            //do if exists
-                            ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
-                        }
-                        else
-                        {
-                            //do if does not exists
-                            ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
-                        }
-
-                        chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
-                        Thread.Sleep(1000);
-                        string EAN = string.Empty;
-
-
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
-                        {
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                            
+                            if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
                             {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                //do if exists
+                                price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                                if (price.Contains("￥"))
+                                {
+                                    price = price.Replace("￥", "");
+                                }
+
                             }
                             else
                             {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                //do if does not exists
+                                price = "0";
                             }
+                            
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                            {
+                                //do if exists
+                                ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                            }
+                            else
+                            {
+                                //do if does not exists
+                                ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
+                            }
+
+                            chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
+                            Thread.Sleep(2000);
+
+
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
+                            {
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                }
+                                else
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                }
+
+                            }
+                            else
+                            {
+                                chrome.Close();
+                                chrome.Quit();
+                                MessageBox.Show(this, "Please login to EAN code!");
+                                return false;
+                            }
+                            if (EAN.Contains("EAN:"))
+                            {
+                                EAN = EAN.Replace("EAN:", "");
+                            }
+                            else
+                            {
+                                EAN = "";
+                            }
+
+                            DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
 
                         }
                         else
                         {
-                            chrome.Close();
-                            chrome.Quit();
-                            MessageBox.Show(this, "Please login to EAN code!");
-                            return false;
-                        }
-                        if (EAN.Contains("EAN:"))
-                        {
-                            EAN = EAN.Replace("EAN:", "");
-                        }
-                        DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
-                    }
+                            int j = 0;
+                            j = i - 50;
+                            //chrome.Url = "https://www.amazon.co.jp/-/en/gp/bestsellers/sports/15314601/ref=zg_bs_pg_2?ie=UTF8&pg=2";
+                            categoryurl = category.Name;
+                            categoryname = category.Text;
 
+                            chrome.Url = categoryurl;
+                            chrome.FindElement(By.XPath("//*[@id='zg center-div']/div[2]/div/ul/li[3]/a")).Click();
+                            Thread.Sleep(1000);
+
+                            var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
+                            chrome.Url = itemcode_url;
+                            Thread.Sleep(1000);
+                           
+                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");                           
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+                            {
+                                //do if exists
+                                brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                            }
+                            else
+                            {
+                                //do if does not exists
+                                brandname = "";
+                            }
+                            
+                            if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
+                            {
+                                //do if exists
+                                price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                            }
+                            else
+                            {
+                                //do if does not exists
+                                price = "0";
+                            }
+                            
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                            {
+                                //do if exists
+                                ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                            }
+                            else
+                            {
+                                //do if does not exists
+                                ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
+                            }
+
+                            chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
+                            Thread.Sleep(2000);                            
+
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
+                            {
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                }
+                                else
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                }
+
+                            }
+                            else
+                            {
+                                chrome.Close();
+                                chrome.Quit();
+                                MessageBox.Show(this, "Please login to EAN code!");
+                                return false;
+                            }
+                            if (EAN.Contains("EAN:"))
+                            {
+                                EAN = EAN.Replace("EAN:", "");
+                            }
+                            else
+                            {
+                                EAN = "";
+                            }
+                            DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
+                        }
+                    }
                 }
                 chrome.Close();
                 chrome.Quit();
                 ReleaseOutputFile();
-                //InsertData();
+                InsertData();
                 Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                 foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
                 {
@@ -393,7 +407,7 @@ namespace AmazonProductCheck
                 dtResult.Rows[dtResult.Rows.Count - 1]["AmazonSKU"] = "";
                 dtResult.Rows[dtResult.Rows.Count - 1]["下代"] = "";
             }
-            dtResult.Rows[dtResult.Rows.Count - 1]["取得日"] = System.DateTime.Now.ToString("MM/dd/yyyy");
+            dtResult.Rows[dtResult.Rows.Count - 1]["取得日"] = System.DateTime.Now.ToString();
         }
         private void ReleaseOutputFile()
         {
@@ -460,7 +474,6 @@ namespace AmazonProductCheck
                 GC.Collect();
             }
         }
-
         private void InsertData()
         {
             dtResult.TableName = "test";
@@ -526,10 +539,8 @@ namespace AmazonProductCheck
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string categoryurl = string.Empty;
-            string categoryname = string.Empty;
-            categoryurl = treeView1.SelectedNode.Name;
-            categoryname = treeView1.SelectedNode.Text;
+            var list = new List<TreeNode>();
+            LookupChecks(treeView1.Nodes, list);
 
             Process[] chromeDriverProcesse = Process.GetProcessesByName("ChromeDriver");
             foreach (var chromeDriverProces in chromeDriverProcesse)
@@ -541,26 +552,20 @@ namespace AmazonProductCheck
             service.HideCommandPromptWindow = true;
             string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
             ChromeOptions options = new ChromeOptions();
-            //options.AddArguments("user-data-dir=" + path);
-            //options.AddArguments("profile-directory=Default");
+            options.AddArguments("user-data-dir=" + path);
+            options.AddArguments("profile-directory=Default");
             options.AddArgument("start-maximized");
             IWebDriver Chrome = new ChromeDriver(service, options);
 
-            if (!Amazon_Chrome(Chrome, categoryurl, categoryname))
+            if (!Amazon_Chrome(Chrome, list))
             {
                 try
-                {
-                    this.Refresh();
-                    Refresh();
-                    this.Hide();
-                    Form1 ss = new Form1();
-                    ss.Show();
+                {                 
                     Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                     foreach (var chromeDriverProcess in chromeDriverProcesses)
                     {
                         chromeDriverProcess.Kill();
                     }
-                    return;
                 }
                 catch
                 { }
@@ -580,6 +585,11 @@ namespace AmazonProductCheck
                 catch
                 { }
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Process.Start(Path.GetDirectoryName(@"D:\New PJ\Amazon\Export_XML\"));
         }
     }
 }
