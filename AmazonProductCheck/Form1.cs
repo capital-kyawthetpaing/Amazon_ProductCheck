@@ -15,6 +15,7 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Data.SqlClient;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace AmazonProductCheck
 {
@@ -25,20 +26,43 @@ namespace AmazonProductCheck
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void ShowDialog(WaitDialog wd)
+        {         
+            wd.ShowDialog();
+        }
+        async private void Form1_Load(object sender, EventArgs e)
         {
             create_Table();
-            treeView1.BeginUpdate();
+
+            WaitDialog wd = new WaitDialog();            
+            wd.TopMost = true;
+            wd.StartPosition = FormStartPosition.CenterScreen;
+            wd.Show();
+            this.Enabled = false;
 
             string url = "https://www.amazon.co.jp/gp/bestsellers/sports/15337751/ref=zg_bs_unv_sg_2_15314601_1";
-            treeView1.Nodes.Add(url, "自転車");
 
-            GetCategory(url, treeView1.Nodes[0]);
-            treeView1.EndUpdate();
+            TreeView t1 = new TreeView();
+            t1.Nodes.Add(url, "自転車");
+            await Task.Run(() => GetCategory(url, t1.Nodes[0]));
+
+            TreeNodeCollection myTreeNodeCollection = t1.Nodes;
+            // Create an array of 'TreeNodes'.
+            TreeNode[] myTreeNodeArray = new TreeNode[t1.Nodes.Count];
+            // Copy the tree nodes to the 'myTreeNodeArray' array.
+            t1.Nodes.CopyTo(myTreeNodeArray, 0);
+            // Remove all the tree nodes from the 'myTreeViewBase' TreeView.
+            t1.Nodes.Clear();
+            // Add the 'myTreeNodeArray' to the 'myTreeViewCustom' TreeView.
+            treeView1.Nodes.AddRange(myTreeNodeArray);
+
+            wd.Close();
+            this.Enabled = true;
+            this.Show();
         }
+
         private void GetCategory(string url, TreeNode parent)
         {
-
             HtmlAgilityPack.HtmlDocument document1 = new HtmlAgilityPack.HtmlDocument();
             string htmlCode1;
             using (WebClient client = new WebClient())
@@ -78,7 +102,6 @@ namespace AmazonProductCheck
                 var child = parent.Nodes.Add(item.Attributes["href"].Value, item.InnerHtml);
                 GetCategory(item.Attributes["href"].Value, child);
             }
-
         }
         private void treeView1_AfterCheck(object sender, TreeViewEventArgs e)
         {
