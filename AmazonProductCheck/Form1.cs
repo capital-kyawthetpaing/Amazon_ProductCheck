@@ -256,7 +256,7 @@ namespace AmazonProductCheck
                             categoryname = category.Text;
 
                             chrome.Url = categoryurl;
-                            chrome.FindElement(By.XPath("//*[@id='zg center-div']/div[2]/div/ul/li[3]/a")).Click();
+                            chrome.FindElement(By.XPath("//*[@id='zg-center-div']/div[2]/div/ul/li[3]/a")).Click();
                             Thread.Sleep(1000);
 
                             var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
