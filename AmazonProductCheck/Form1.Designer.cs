@@ -61,7 +61,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(712, 494);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(73, 20);
+            this.label1.Size = new System.Drawing.Size(55, 13);
             this.label1.TabIndex = 2;
             this.label1.Text = "取得順位";
             // 
@@ -69,7 +69,7 @@
             // 
             this.textBox1.Location = new System.Drawing.Point(849, 491);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 26);
+            this.textBox1.Size = new System.Drawing.Size(100, 20);
             this.textBox1.TabIndex = 3;
             this.textBox1.Text = "100";
             // 
@@ -78,7 +78,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(728, 568);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(57, 20);
+            this.label2.Size = new System.Drawing.Size(43, 13);
             this.label2.TabIndex = 4;
             this.label2.Text = "出力先";
             // 
@@ -86,7 +86,7 @@
             // 
             this.textBox2.Location = new System.Drawing.Point(849, 562);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(242, 26);
+            this.textBox2.Size = new System.Drawing.Size(242, 20);
             this.textBox2.TabIndex = 5;
             // 
             // button2
@@ -110,6 +110,7 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.treeView1);
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
