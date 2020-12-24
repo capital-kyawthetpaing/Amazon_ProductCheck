@@ -26,10 +26,6 @@ namespace AmazonProductCheck
             InitializeComponent();
         }
 
-        private void ShowDialog(WaitDialog wd)
-        {         
-            wd.ShowDialog();
-        }
         async private void Form1_Load(object sender, EventArgs e)
         {
             create_Table();
@@ -59,6 +55,17 @@ namespace AmazonProductCheck
             wd.Close();
             this.Enabled = true;
             this.Show();
+        }
+
+        void LookupChecks(TreeNodeCollection nodes, List<TreeNode> list)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Checked)
+                    list.Add(node);
+
+                LookupChecks(node.Nodes, list);
+            }
         }
 
         private void GetCategory(string url, TreeNode parent)
@@ -132,7 +139,9 @@ namespace AmazonProductCheck
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Environment.Exit(0);
+            var list = new List<TreeNode>();
+            LookupChecks(treeView1.Nodes, list);
+            //Environment.Exit(0);
         }
         private bool Amazon_Chrome(IWebDriver chrome, string categoryurl, string categoryname)
         {
