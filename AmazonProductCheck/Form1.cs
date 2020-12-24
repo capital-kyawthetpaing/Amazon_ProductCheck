@@ -389,27 +389,28 @@ namespace AmazonProductCheck
             dtResult.Rows[dtResult.Rows.Count - 1]["ASIN"] = ASIN;
             dtResult.Rows[dtResult.Rows.Count - 1]["EANCD"] = EAN;
             dtResult.Rows[dtResult.Rows.Count - 1]["参考価格"] = price;
-            DataTable dtAmazonSKU = new DataTable();
-            dtAmazonSKU = GetAmazonSKU(EAN);
-            if (dtAmazonSKU.Rows.Count > 0)
-            {
-                dtResult.Rows[dtResult.Rows.Count - 1]["AmazonSKU"] = dtAmazonSKU.Rows[0]["AmazonSKU"].ToString();
-                DataTable dtMakerStatus = new DataTable();
-                dtMakerStatus = GetDataFromMaker_Status(dtAmazonSKU.Rows[0]["AmazonSKU"].ToString());
-                if (dtMakerStatus.Rows.Count > 0)
-                {
-                    dtResult.Rows[dtResult.Rows.Count - 1]["下代"] = dtMakerStatus.Rows[0]["下代"].ToString();
-                }
+            //DataTable dtAmazonSKU = new DataTable();
+            //dtAmazonSKU = GetAmazonSKU(EAN);
+            //if (dtAmazonSKU.Rows.Count > 0)
+            //{
+            //    dtResult.Rows[dtResult.Rows.Count - 1]["AmazonSKU"] = dtAmazonSKU.Rows[0]["AmazonSKU"].ToString();
+            //    DataTable dtMakerStatus = new DataTable();
+            //    dtMakerStatus = GetDataFromMaker_Status(dtAmazonSKU.Rows[0]["AmazonSKU"].ToString());
+            //    if (dtMakerStatus.Rows.Count > 0)
+            //    {
+            //        dtResult.Rows[dtResult.Rows.Count - 1]["下代"] = dtMakerStatus.Rows[0]["下代"].ToString();
+            //    }
 
-            }
-            else
-            {
-                dtResult.Rows[dtResult.Rows.Count - 1]["AmazonSKU"] = "";
-                dtResult.Rows[dtResult.Rows.Count - 1]["下代"] = "";
-            }
+            //}
+            //else
+            //{
+            //    dtResult.Rows[dtResult.Rows.Count - 1]["AmazonSKU"] = "";
+            //    dtResult.Rows[dtResult.Rows.Count - 1]["下代"] = "";
+            //}
             dtResult.Rows[dtResult.Rows.Count - 1]["取得日"] = System.DateTime.Now.ToString();
         }
         private void ReleaseOutputFile()
+
         {
             ExportExcel(dtResult, outdir+ "\\" + DateTime.Now.ToString("yyyyMMddHHmmss").Replace("\\", "").Replace(" ", string.Empty).Replace("/", "").Replace(":", "") + "Amazon.xlsx");
                
@@ -482,8 +483,9 @@ namespace AmazonProductCheck
             string result = writer.ToString();
             Insert(result);
         }
-        private void Insert(string xml)
+        private DataTable Insert(string xml)
         {
+            DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(connectionString);
             SqlCommand cmd = new SqlCommand("SP_Insert_AmazonSKU", con);
             try
@@ -491,8 +493,11 @@ namespace AmazonProductCheck
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = 0;
                 cmd.Parameters.Add("@xml", SqlDbType.Xml).Value = xml;
+                var adp = new SqlDataAdapter();
+                adp.SelectCommand = cmd;
                 cmd.Connection.Open();
-                cmd.ExecuteNonQuery();
+                adp.Fill(dt);
+                return dt;
 
             }
             catch (Exception ex)
