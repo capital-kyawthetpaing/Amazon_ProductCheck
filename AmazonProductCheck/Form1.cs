@@ -333,8 +333,9 @@ namespace AmazonProductCheck
                 }
                 chrome.Close();
                 chrome.Quit();
-                ReleaseOutputFile();
-                InsertData();
+                DataTable dt = InsertData();
+                ReleaseOutputFile(dt);
+                
                 Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                 foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
                 {
@@ -409,7 +410,7 @@ namespace AmazonProductCheck
             //}
             dtResult.Rows[dtResult.Rows.Count - 1]["取得日"] = System.DateTime.Now.ToString();
         }
-        private void ReleaseOutputFile()
+        private void ReleaseOutputFile(DataTable dtResult)
 
         {
             ExportExcel(dtResult, outdir+ "\\" + DateTime.Now.ToString("yyyyMMddHHmmss").Replace("\\", "").Replace(" ", string.Empty).Replace("/", "").Replace(":", "") + "Amazon.xlsx");
@@ -475,13 +476,13 @@ namespace AmazonProductCheck
                 GC.Collect();
             }
         }
-        private void InsertData()
+        private DataTable InsertData()
         {
             dtResult.TableName = "test";
             System.IO.StringWriter writer = new System.IO.StringWriter();
             dtResult.WriteXml(writer, XmlWriteMode.WriteSchema, false);
             string result = writer.ToString();
-            Insert(result);
+            return Insert(result);
         }
         private DataTable Insert(string xml)
         {
