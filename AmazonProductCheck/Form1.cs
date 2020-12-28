@@ -31,7 +31,7 @@ namespace AmazonProductCheck
         {
             create_Table();
 
-            WaitDialog wd = new WaitDialog();            
+            WaitDialog wd = new WaitDialog();
             wd.TopMost = true;
             wd.StartPosition = FormStartPosition.CenterScreen;
             wd.Show();
@@ -157,60 +157,84 @@ namespace AmazonProductCheck
                     string ASIN = string.Empty;
                     string EAN = string.Empty;
 
-                    for (int i = 51; i <= 100; i++)
-                    {                   
+                    int numbSelect = 0;
+                    numbSelect = Convert.ToInt32(textBox1.Text);
+                    for (int i = 1; i <= numbSelect; i++)
+                    {
                         if (i <= 50)
                         {
-                            //chrome.Url = "https://www.amazon.co.jp/gp/bestsellers/sports/15314601/ref=zg_bs_nav_sg_2_15337751/358-4226875-7101947";
                             categoryurl = category.Name;
                             categoryname = category.Text;
 
                             chrome.Url = categoryurl;
-                            Thread.Sleep(1000);
+                            Thread.Sleep(1000);                        
 
                             var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
                             chrome.Url = itemcode_url;
                             Thread.Sleep(1000);
-                            
+
                             itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-                            
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='bylineInfo']")))
                             {
-                                //do if exists
-                                brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                                brandname = chrome.FindElement(By.XPath("//*[@id='bylineInfo']")).Text;
                             }
                             else
                             {
-                                //do if does not exists
                                 brandname = "";
                             }
-                            
+                            if (brandname.Contains("ブランド: "))
+                            {
+                                brandname = brandname.Replace("ブランド: ", "");
+                            }
+                            else
+                            {
+                                brandname = "";
+                            }
+
                             if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
                             {
-                                //do if exists
                                 price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
                                 if (price.Contains("￥"))
                                 {
                                     price = price.Replace("￥", "");
                                 }
-
+                            }
+                            else if (IsElementPresent(chrome, By.Id("newBuyBoxPrice")))
+                            {
+                                price = chrome.FindElement(By.Id("newBuyBoxPrice")).Text;
+                                if (price.Contains("￥"))
+                                {
+                                    price = price.Replace("￥", "");
+                                }
                             }
                             else
                             {
-                                //do if does not exists
                                 price = "0";
                             }
-                            
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+
+                            if (IsElementPresent(chrome, By.XPath("//*[contains(text(),'ASIN')]")))
                             {
-                                //do if exists
-                                ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='detailBullets_feature_div']/ul")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text;
+                                    }
+                                }
+                                else if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                                    }
+                                }
                             }
-                            else
+                            if (ASIN.Contains("ASIN"))
                             {
-                                //do if does not exists
-                                ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
+                                ASIN = ASIN.Substring(ASIN.IndexOf("ASIN : ") + 7).Substring(0,10);
                             }
+
 
                             chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
                             Thread.Sleep(2000);
@@ -243,15 +267,12 @@ namespace AmazonProductCheck
                             {
                                 EAN = "";
                             }
-
                             DataResult(i.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
-
                         }
                         else
                         {
                             int j = 0;
                             j = i - 50;
-                            //chrome.Url = "https://www.amazon.co.jp/-/en/gp/bestsellers/sports/15314601/ref=zg_bs_pg_2?ie=UTF8&pg=2";
                             categoryurl = category.Name;
                             categoryname = category.Text;
 
@@ -259,43 +280,72 @@ namespace AmazonProductCheck
                             chrome.FindElement(By.XPath("//*[@id='zg-center-div']/div[2]/div/ul/li[3]/a")).Click();
                             Thread.Sleep(1000);
 
-                            var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + i + "]/span/div/span/a")).GetAttribute("href");
+                            var itemcode_url = chrome.FindElement(By.XPath("//*[@id='zg-ordered-list']/li[" + j + "]/span/div/span/a")).GetAttribute("href");
                             chrome.Url = itemcode_url;
                             Thread.Sleep(1000);
                            
-                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");                           
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")))
+                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
+
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='bylineInfo']")))
                             {
-                                //do if exists
-                                brandname = chrome.FindElement(By.XPath("//*[@id='productOverview_feature_div']/div/table/tbody/tr[1]/td[2]/span")).Text;
+                                brandname = chrome.FindElement(By.XPath("//*[@id='bylineInfo']")).Text;
                             }
                             else
                             {
-                                //do if does not exists
                                 brandname = "";
                             }
-                            
+                            if (brandname.Contains("ブランド: "))
+                            {
+                                brandname = brandname.Replace("ブランド: ", "");
+                            }
+                            else
+                            {
+                                brandname = "";
+                            }
+
                             if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
                             {
-                                //do if exists
                                 price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                                if (price.Contains("￥"))
+                                {
+                                    price = price.Replace("￥", "");
+                                }
+                            }
+                            else if (IsElementPresent(chrome, By.Id("newBuyBoxPrice")))
+                            {
+                                price = chrome.FindElement(By.Id("newBuyBoxPrice")).Text;
+                                if (price.Contains("￥"))
+                                {
+                                    price = price.Replace("￥", "");
+                                }
                             }
                             else
                             {
-                                //do if does not exists
                                 price = "0";
                             }
-                            
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+
+                            if (IsElementPresent(chrome, By.XPath("//*[contains(text(),'ASIN')]")))
                             {
-                                //do if exists
-                                ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='detailBullets_feature_div']/ul")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text;
+                                    }
+                                }
+                                else if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                                    }
+                                }
                             }
-                            else
+                            if (ASIN.Contains("ASIN"))
                             {
-                                //do if does not exists
-                                ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul/li[4]/span/span[2]")).Text;
+                                ASIN = ASIN.Substring(ASIN.IndexOf("ASIN : ") + 7).Substring(0, 10);
                             }
+
 
                             chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
                             Thread.Sleep(2000);                            
@@ -310,7 +360,6 @@ namespace AmazonProductCheck
                                 {
                                     EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
                                 }
-
                             }
                             else
                             {
@@ -596,6 +645,19 @@ namespace AmazonProductCheck
         private void button3_Click(object sender, EventArgs e)
         {
             Process.Start(Path.GetDirectoryName(@"D:\New PJ\Amazon\Export_XML\"));
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            var textbox = sender as TextBox;
+            int value;
+            if (int.TryParse(textbox.Text, out value))
+            {
+                if (value > 100)
+                    textbox.Text = "100";
+                else if (value < 0)
+                    textbox.Text = "0";
+            }
         }
     }
 }
