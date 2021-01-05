@@ -30,6 +30,7 @@ namespace AmazonProductCheck
         string outdir = @"D:\New PJ\Amazon\Export_XML";
         async private void Form1_Load(object sender, EventArgs e)
         {
+            this.MaximizeBox = false;
             Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
             foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
             {
