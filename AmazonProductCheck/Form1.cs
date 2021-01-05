@@ -231,9 +231,13 @@ namespace AmazonProductCheck
                         {
                             brandname = brandname.Replace("ブランド: ", "");
                         }
+                        else if(brandname.Contains("Brand:"))
+                        {
+                            brandname = brandname.Replace("Brand:", "");
+                        }
                         else
                         {
-                            brandname = "";
+                            brandname ="";
                         }
 
                         if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
