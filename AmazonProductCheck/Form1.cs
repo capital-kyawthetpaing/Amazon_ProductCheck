@@ -26,7 +26,8 @@ namespace AmazonProductCheck
         {
             InitializeComponent();
         }
-
+        System.Data.DataTable dtResult;
+        string outdir = @"D:\New PJ\Amazon\Export_XML";
         async private void Form1_Load(object sender, EventArgs e)
         {
             Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
@@ -352,8 +353,7 @@ namespace AmazonProductCheck
                 return false;
             }
         }
-        System.Data.DataTable dtResult;
-        string outdir = @"D:\New PJ\Amazon\Export_XML";
+       
         public static string connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
         private void create_Table()
         {
