@@ -218,8 +218,14 @@ namespace AmazonProductCheck
                         chrome.FindElement(By.XPath("/html/body/center/div[1]/a")).Click();
                     }
 
-                    itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-
+                        if (IsElementPresent(chrome, By.Id("imgTagWrapperId")))
+                        {
+                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
+                        }
+                        else
+                        {
+                            itemname = "";
+                        }                   
                         if (IsElementPresent(chrome, By.XPath("//*[@id='bylineInfo']")))
                         {
                             brandname = chrome.FindElement(By.XPath("//*[@id='bylineInfo']")).Text;
@@ -323,7 +329,7 @@ namespace AmazonProductCheck
                 }
                 chrome.Close();
                 chrome.Quit();
-                DataTable dt = InsertData();
+                 DataTable dt = InsertData();
                 ReleaseOutputFile(dt);
                 
                 Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
