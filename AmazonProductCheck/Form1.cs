@@ -27,7 +27,7 @@ namespace AmazonProductCheck
             InitializeComponent();
         }
         System.Data.DataTable dtResult;
-        string outdir = @"D:\New PJ\Amazon\Export_XML";
+        string outdir = @"C:\AmazonProductCheck\Output";
         async private void Form1_Load(object sender, EventArgs e)
         {
             this.MaximizeBox = false;
@@ -593,7 +593,7 @@ namespace AmazonProductCheck
 
         private void button3_Click(object sender, EventArgs e)
         {
-            Process.Start(Path.GetDirectoryName(@"D:\New PJ\Amazon\Export_XML\"));
+            Process.Start(Path.GetDirectoryName(@"C:\AmazonProductCheck\Output\"));
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
