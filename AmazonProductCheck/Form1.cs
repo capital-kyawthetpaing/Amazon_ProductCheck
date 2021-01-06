@@ -251,22 +251,22 @@ namespace AmazonProductCheck
                         if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
                         {
                             price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
-                            if (price.Contains("¥"))
-                            {
-                                price = price.Replace("¥", "");
-                            }
                         }
                         else if (IsElementPresent(chrome, By.Id("newBuyBoxPrice")))
                         {
                             price = chrome.FindElement(By.Id("newBuyBoxPrice")).Text;
-                            if (price.Contains("¥"))
-                            {
-                                price = price.Replace("¥", "");
-                            }
                         }
                         else
                         {
                             price = "0";
+                        }
+                        if (price.Contains("¥"))
+                        {
+                            price = price.Replace("¥", "");
+                        }
+                        else if (price.Contains("￥"))
+                        {
+                            price = price.Replace("￥", "");
                         }
 
                         if (IsElementPresent(chrome, By.XPath("//*[contains(text(),'ASIN')]")))
