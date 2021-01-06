@@ -82,7 +82,7 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(242, 26);
             this.textBox2.TabIndex = 5;
-            this.textBox2.Text = "D:\\New PJ\\Amazon\\Export_XML\\";
+            this.textBox2.Text = "C:\\AmazonProductCheck\\Output";
             // 
             // button2
             // 
