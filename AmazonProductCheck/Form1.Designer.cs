@@ -45,7 +45,7 @@
             this.treeView1.CheckBoxes = true;
             this.treeView1.Location = new System.Drawing.Point(10, 12);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(666, 674);
+            this.treeView1.Size = new System.Drawing.Size(666, 638);
             this.treeView1.TabIndex = 0;
             this.treeView1.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterCheck);
             // 
@@ -87,7 +87,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(1132, 601);
+            this.button2.Location = new System.Drawing.Point(1132, 574);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(133, 76);
             this.button2.TabIndex = 6;
@@ -116,7 +116,7 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(1088, 502);
+            this.button4.Location = new System.Drawing.Point(1088, 486);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(177, 35);
             this.button4.TabIndex = 9;
@@ -128,7 +128,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1528, 1044);
+            this.ClientSize = new System.Drawing.Size(1314, 669);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button3);

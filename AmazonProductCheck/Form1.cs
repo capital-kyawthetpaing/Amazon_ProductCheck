@@ -590,59 +590,78 @@ namespace AmazonProductCheck
             directory = textBox2.Text;
             if (!string.IsNullOrWhiteSpace(directory))
             {
-                create_Table();
-
-                var list = new List<TreeNode>();
-                LookupChecks(treeView1.Nodes, list);
                 try
                 {
-                    ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-                    service.HideCommandPromptWindow = true;
-                    string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
-                    ChromeOptions options = new ChromeOptions();
-                    options.AddArguments("user-data-dir=" + path);
-                    options.AddArguments("profile-directory=Default");
-                    options.AddArgument("start-maximized");
-                    IWebDriver Chrome = new ChromeDriver(service, options);
-
-                    if (!Amazon_Chrome(Chrome, list, directory))
+                    try
                     {
+                        directory = directory.TrimEnd('\\');
+                        Directory.SetCurrentDirectory(directory);
+                        create_Table();
+
+                        var list = new List<TreeNode>();
+                        LookupChecks(treeView1.Nodes, list);
                         try
+                        {
+                            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+                            service.HideCommandPromptWindow = true;
+                            string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
+                            ChromeOptions options = new ChromeOptions();
+                            options.AddArguments("user-data-dir=" + path);
+                            options.AddArguments("profile-directory=Default");
+                            options.AddArgument("start-maximized");
+                            IWebDriver Chrome = new ChromeDriver(service, options);
+
+                            if (!Amazon_Chrome(Chrome, list, directory))
+                            {
+                                try
+                                {
+                                    Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                                    foreach (var chromeDriverProcess in chromeDriverProcesses)
+                                    {
+                                        chromeDriverProcess.Kill();
+                                    }
+                                }
+                                catch
+                                { }
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    Chrome.Close();
+                                    Chrome.Quit();
+                                    Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                                    foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
+                                    {
+                                        firefoxDriverProcesse.Kill();
+                                    }
+                                }
+                                catch
+                                { }
+                            }
+                        }
+                        catch (WebDriverException ex)
                         {
                             Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                             foreach (var chromeDriverProcess in chromeDriverProcesses)
                             {
                                 chromeDriverProcess.Kill();
                             }
+                            MessageBox.Show("Please close chrome!");
                         }
-                        catch
-                        { }
                     }
-                    else
+                    catch (DirectoryNotFoundException exception)
                     {
-                        try
-                        {
-                            Chrome.Close();
-                            Chrome.Quit();
-                            Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                            foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
-                            {
-                                firefoxDriverProcesse.Kill();
-                            }
-                        }
-                        catch
-                        { }
+                        string errormsg = exception.ToString();
+                        MessageBox.Show("出力先がありません");
                     }
                 }
-                catch(WebDriverException ex)
+                catch (System.ComponentModel.Win32Exception exception)
                 {
-                    Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                    foreach (var chromeDriverProcess in chromeDriverProcesses)
-                    {
-                        chromeDriverProcess.Kill();
-                    }
-                    MessageBox.Show("Please close chrome!");
-                }                
+                    string errormsg = exception.ToString();
+                    MessageBox.Show("出力先がありません");
+                }
+                            
             }
             else
             {
