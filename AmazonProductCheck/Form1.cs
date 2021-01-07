@@ -156,8 +156,15 @@ namespace AmazonProductCheck
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if(MessageBox.Show("Do you really want to exit?","Confirm",MessageBoxButtons.OKCancel,MessageBoxIcon.Question) == DialogResult.OK)
+            try
+            {
+                if (MessageBox.Show("Do you really want to exit?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
+                    Environment.Exit(0);
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
                 Environment.Exit(0);
+            }
         }
         private bool Amazon_Chrome(IWebDriver chrome, List<TreeNode> catlist,string outdir)
         {
