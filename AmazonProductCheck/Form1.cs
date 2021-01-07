@@ -27,9 +27,19 @@ namespace AmazonProductCheck
             InitializeComponent();
         }
         System.Data.DataTable dtResult;
-        string outdir = @"C:\AmazonProductCheck\Output";
         async private void Form1_Load(object sender, EventArgs e)
         {
+           string path = System.IO.Path.GetDirectoryName(Application.ExecutablePath);
+            // Determine whether the directory exists.
+            if (Directory.Exists(path+"\\Output"))
+            {
+                textBox2.Text = path + "\\Output";
+            }
+
+            // Try to create the directory.
+            DirectoryInfo di = Directory.CreateDirectory(path + "\\Output");
+            textBox2.Text = di.FullName;
+
             this.MaximizeBox = false;
             Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
             foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
@@ -149,7 +159,7 @@ namespace AmazonProductCheck
             if(MessageBox.Show("Do you really want to exit?","Confirm",MessageBoxButtons.OKCancel,MessageBoxIcon.Question) == DialogResult.OK)
                 Environment.Exit(0);
         }
-        private bool Amazon_Chrome(IWebDriver chrome, List<TreeNode> catlist)
+        private bool Amazon_Chrome(IWebDriver chrome, List<TreeNode> catlist,string outdir)
         {
             try
             {
@@ -204,134 +214,144 @@ namespace AmazonProductCheck
  
                     for (int i = 0; i < _list.Count; i++)
                     {
-                        categoryname = category.Text;
+                        try
+                        {
+                            categoryname = category.Text;
 
-                        chrome.Url = _list[i];
-                        Thread.Sleep(1000);
+                            chrome.Url = _list[i];
+                            Thread.Sleep(1000);
 
-                    string result = string.Empty;
-                    if (IsElementPresent(chrome, By.XPath("/html/body/center/span")))
-                    {
-                        result = chrome.FindElement(By.XPath("/html/body/center/span")).Text;
-                    }
-                    if (result.Contains("年齢確認"))
-                    {
-                        chrome.FindElement(By.XPath("/html/body/center/div[1]/a")).Click();
-                    }
-
-                        if (IsElementPresent(chrome, By.Id("imgTagWrapperId")))
-                        {
-                            itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
-                        }
-                        else
-                        {
-                            itemname = "";
-                        }                   
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='bylineInfo']")))
-                        {
-                            brandname = chrome.FindElement(By.XPath("//*[@id='bylineInfo']")).Text;
-                        }
-                        else
-                        {
-                            brandname = "";
-                        }
-                        if (brandname.Contains("ブランド: "))
-                        {
-                            brandname = brandname.Replace("ブランド: ", "");
-                        }
-                        else if(brandname.Contains("Brand:"))
-                        {
-                            brandname = brandname.Replace("Brand:", "");
-                        }
-                        else
-                        {
-                            brandname ="";
-                        }
-
-                        if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
-                        {
-                            price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
-                        }
-                        else if (IsElementPresent(chrome, By.Id("newBuyBoxPrice")))
-                        {
-                            price = chrome.FindElement(By.Id("newBuyBoxPrice")).Text;
-                        }
-                        else
-                        {
-                            price = "0";
-                        }
-                        if (price.Contains("¥"))
-                        {
-                            price = price.Replace("¥", "");
-                        }
-                        else if (price.Contains("￥"))
-                        {
-                            price = price.Replace("￥", "");
-                        }
-
-                        if (IsElementPresent(chrome, By.XPath("//*[contains(text(),'ASIN')]")))
-                        {
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='detailBullets_feature_div']/ul")))
+                            string result = string.Empty;
+                            if (IsElementPresent(chrome, By.XPath("/html/body/center/span")))
                             {
-                                if (chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text.Contains("ASIN"))
-                                {
-                                    ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text;
-                                }
+                                result = chrome.FindElement(By.XPath("/html/body/center/span")).Text;
                             }
-                            else if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                            if (result.Contains("年齢確認"))
                             {
-                                if (chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]")).Text.Contains("ASIN"))
-                                {
-                                    ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
-                                }
+                                chrome.FindElement(By.XPath("/html/body/center/div[1]/a")).Click();
                             }
-                        }
-                        if (ASIN.Contains("ASIN"))
-                        {
-                            ASIN = ASIN.Substring(ASIN.IndexOf("ASIN : ") + 7).Substring(0, 10);
-                        }
 
-
-                        chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
-                        Thread.Sleep(2000);
-
-
-                        if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
-                        {
-                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                            if (IsElementPresent(chrome, By.Id("imgTagWrapperId")))
                             {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                itemname = chrome.FindElement(By.Id("imgTagWrapperId")).FindElement(By.TagName("img")).GetAttribute("alt");
                             }
                             else
                             {
-                                EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                itemname = "";
+                            }
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='bylineInfo']")))
+                            {
+                                brandname = chrome.FindElement(By.XPath("//*[@id='bylineInfo']")).Text;
+                            }
+                            else
+                            {
+                                brandname = "";
+                            }
+                            if (brandname.Contains("ブランド: "))
+                            {
+                                brandname = brandname.Replace("ブランド: ", "");
+                            }
+                            else if (brandname.Contains("Brand:"))
+                            {
+                                brandname = brandname.Replace("Brand:", "");
+                            }
+                            else
+                            {
+                                brandname = "";
                             }
 
+                            if (IsElementPresent(chrome, By.Id("price_inside_buybox")))
+                            {
+                                price = chrome.FindElement(By.Id("price_inside_buybox")).Text;
+                            }
+                            else if (IsElementPresent(chrome, By.Id("newBuyBoxPrice")))
+                            {
+                                price = chrome.FindElement(By.Id("newBuyBoxPrice")).Text;
+                            }
+                            else
+                            {
+                                price = "0";
+                            }
+                            if (price.Contains("¥"))
+                            {
+                                price = price.Replace("¥", "");
+                            }
+                            else if (price.Contains("￥"))
+                            {
+                                price = price.Replace("￥", "");
+                            }
+
+                            if (IsElementPresent(chrome, By.XPath("//*[contains(text(),'ASIN')]")))
+                            {
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='detailBullets_feature_div']/ul")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='detailBullets_feature_div']/ul")).Text;
+                                    }
+                                }
+                                else if (IsElementPresent(chrome, By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")))
+                                {
+                                    if (chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]")).Text.Contains("ASIN"))
+                                    {
+                                        ASIN = chrome.FindElement(By.XPath("//*[@id='productDetails_detailBullets_sections1']/tbody/tr[1]/td")).Text;
+                                    }
+                                }
+                            }
+                            if (ASIN.Contains("ASIN"))
+                            {
+                                ASIN = ASIN.Substring(ASIN.IndexOf("ASIN : ") + 7).Substring(0, 10);
+                            }
+
+
+                            chrome.Url = "https://sellercentral-japan.amazon.com/product-search/search?q=" + ASIN + "&ref_=xx_catadd_dnav_home";
+                            Thread.Sleep(2000);
+
+
+                            if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]")))
+                            {
+                                if (IsElementPresent(chrome, By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")))
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p[2]")).Text;
+                                }
+                                else
+                                {
+                                    EAN = chrome.FindElement(By.XPath("//*[@id='search-result']/div/kat-box/div/section[3]/div[1]/section[1]/div/section[1]/p")).Text;
+                                }
+
+                            }
+                            else
+                            {
+                                chrome.Close();
+                                chrome.Quit();
+                                MessageBox.Show(this, "Please login to EAN code!");
+                                return false;
+                            }
+                            if (EAN.Contains("EAN:"))
+                            {
+                                EAN = EAN.Replace("EAN:", "");
+                            }
+                            else
+                            {
+                                EAN = "";
+                            }
+                            int j = 0;
+                            j = i + 1;
+                            DataResult(j.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
                         }
-                        else
+                        catch (TimeoutException ex)
                         {
                             chrome.Close();
                             chrome.Quit();
-                            MessageBox.Show(this, "Please login to EAN code!");
+                            MessageBox.Show(this, "Your internet connection is poor. Please try again!");
                             return false;
-                        }
-                        if (EAN.Contains("EAN:"))
-                        {
-                            EAN = EAN.Replace("EAN:", "");
-                        }
-                        else
-                        {
-                            EAN = "";
-                        }
-                        int j = 0;
-                        j = i + 1;
-                        DataResult(j.ToString(), categoryname, itemname, brandname, price, ASIN, EAN);
+                        }                      
                     }
                 }
                 chrome.Close();
                 chrome.Quit();
-                 DataTable dt = InsertData();
-                ReleaseOutputFile(dt);
+                DataTable dt = InsertData();
+                ReleaseOutputFile(dt, outdir);
                 
                 Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                 foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
@@ -340,9 +360,10 @@ namespace AmazonProductCheck
                 }
                 return true;
             }
-            catch (ThreadInterruptedException e)
+            catch (ThreadInterruptedException ex)
             {
-                Environment.Exit(0);
+                chrome.Close();
+                chrome.Quit();
                 return false;
             }
            
@@ -406,11 +427,28 @@ namespace AmazonProductCheck
             //}
             dtResult.Rows[dtResult.Rows.Count - 1]["取得日"] = System.DateTime.Now.ToString();
         }
-        private void ReleaseOutputFile(DataTable dtResult)
-
+        private void ReleaseOutputFile(DataTable dtResult,string outdir)
         {
-            ExportExcel(dtResult, outdir+ "\\" + DateTime.Now.ToString("yyyyMMddHHmmss").Replace("\\", "").Replace(" ", string.Empty).Replace("/", "").Replace(":", "") + "Amazon.xlsx");
-               
+            try
+            {
+                try
+                {
+                    outdir = outdir.TrimEnd('\\');
+                    Directory.SetCurrentDirectory(outdir);
+                    ExportExcel(dtResult, outdir + "\\" + DateTime.Now.ToString("yyyyMMddHHmmss").Replace("\\", "").Replace(" ", string.Empty).Replace("/", "").Replace(":", "") + "Amazon.xlsx");
+                }
+                catch (DirectoryNotFoundException exception)
+                {
+                    string errormsg = exception.ToString();
+                    MessageBox.Show("出力先がありません");
+                }
+            }
+            catch (System.ComponentModel.Win32Exception exception)
+            {
+                string errormsg = exception.ToString();
+                MessageBox.Show("出力先がありません");
+            }
+           
         }
         private void ExportExcel(System.Data.DataTable dtOutput, string filename)
         {
@@ -541,59 +579,76 @@ namespace AmazonProductCheck
 
         private void button2_Click(object sender, EventArgs e)
         {
-            create_Table();
-
-            var list = new List<TreeNode>();
-            LookupChecks(treeView1.Nodes, list);
-
-            Process[] chromeDriverProcesse = Process.GetProcessesByName("ChromeDriver");
-            foreach (var chromeDriverProces in chromeDriverProcesse)
+            string directory = string.Empty;
+            directory = textBox2.Text;
+            if (!string.IsNullOrWhiteSpace(directory))
             {
-                chromeDriverProces.Kill();
-            }
+                create_Table();
 
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-            service.HideCommandPromptWindow = true;
-            string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
-            ChromeOptions options = new ChromeOptions();
-            options.AddArguments("user-data-dir=" + path);
-            options.AddArguments("profile-directory=Default");
-            options.AddArgument("start-maximized");
-            IWebDriver Chrome = new ChromeDriver(service, options);
-
-            if (!Amazon_Chrome(Chrome, list))
-            {
+                var list = new List<TreeNode>();
+                LookupChecks(treeView1.Nodes, list);
                 try
-                {                 
+                {
+                    ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+                    service.HideCommandPromptWindow = true;
+                    string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data");
+                    ChromeOptions options = new ChromeOptions();
+                    options.AddArguments("user-data-dir=" + path);
+                    options.AddArguments("profile-directory=Default");
+                    options.AddArgument("start-maximized");
+                    IWebDriver Chrome = new ChromeDriver(service, options);
+
+                    if (!Amazon_Chrome(Chrome, list, directory))
+                    {
+                        try
+                        {
+                            Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                            foreach (var chromeDriverProcess in chromeDriverProcesses)
+                            {
+                                chromeDriverProcess.Kill();
+                            }
+                        }
+                        catch
+                        { }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            Chrome.Close();
+                            Chrome.Quit();
+                            Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                            foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
+                            {
+                                firefoxDriverProcesse.Kill();
+                            }
+                        }
+                        catch
+                        { }
+                    }
+                }
+                catch(WebDriverException ex)
+                {
                     Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                     foreach (var chromeDriverProcess in chromeDriverProcesses)
                     {
                         chromeDriverProcess.Kill();
                     }
-                }
-                catch
-                { }
+                    MessageBox.Show("Please close chrome!");
+                }                
             }
             else
             {
-                try
-                {
-                    Chrome.Close();
-                    Chrome.Quit();
-                    Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                    foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
-                    {
-                        firefoxDriverProcesse.Kill();
-                    }
-                }
-                catch
-                { }
+                MessageBox.Show("出力先に　入力してください。");
             }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            Process.Start(Path.GetDirectoryName(@"C:\AmazonProductCheck\Output\"));
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textBox2.Text = folderBrowserDialog1.SelectedPath;
+            }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -606,6 +661,35 @@ namespace AmazonProductCheck
                     textbox.Text = "100";
                 else if (value < 0)
                     textbox.Text = "0";
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            string path = string.Empty;
+            path = textBox2.Text;
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                try
+                {
+                    try {
+                        Process.Start(Path.GetDirectoryName(path + "\\"));
+                    }
+                    catch (DirectoryNotFoundException exception)
+                    {
+                        string errormsg = exception.ToString();
+                        MessageBox.Show("出力先がありません");
+                    }                    
+                }
+                catch (System.ComponentModel.Win32Exception exception)
+                {
+                    string errormsg = exception.ToString();
+                    MessageBox.Show("出力先がありません");
+                }
+            }
+            else
+            {
+                MessageBox.Show("出力先に　入力してください。");
             }
         }
     }
