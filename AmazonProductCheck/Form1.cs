@@ -715,7 +715,7 @@ namespace AmazonProductCheck
             {
                 if (value > 100)
                     textbox.Text = "100";
-                else if (value < 0)
+                else if (value < 1)
                     textbox.Text = "1";
             }
         }
