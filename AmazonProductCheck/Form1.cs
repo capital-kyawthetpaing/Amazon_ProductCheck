@@ -159,7 +159,17 @@ namespace AmazonProductCheck
             try
             {
                 if (MessageBox.Show("Do you really want to exit?", "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
-                    Environment.Exit(0);
+                {
+                    try
+                    {
+                        Environment.Exit(0);
+                    }
+                    catch (System.ComponentModel.Win32Exception ex)
+                    {
+                        Environment.Exit(0);
+                    }
+                }
+                   
             }
             catch (System.ComponentModel.Win32Exception ex)
             {
@@ -746,6 +756,18 @@ namespace AmazonProductCheck
             else
             {
                 MessageBox.Show("出力先に　入力してください。");
+            }
+        }
+
+        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == (char)System.Windows.Forms.Keys.Back) //The  character represents a backspace
+            {
+                e.Handled = false; //Do not reject the input
+            }
+            else
+            {
+                e.Handled = true; //Reject the input
             }
         }
     }
