@@ -590,98 +590,113 @@ namespace AmazonProductCheck
             string profile = string.Empty;
             string chromever = string.Empty;
             chromever = textBox3.Text;
-            
-           
-            if (!string.IsNullOrWhiteSpace(directory))
-            {
-                if (!string.IsNullOrWhiteSpace(chromever)) {
-                    profile = chromever.Split('\\').Last();
-                    chromedir = chromever.Replace(profile, "");
-                    chromedir = chromedir.TrimEnd('\\');
-                    try
+            string rank = string.Empty;
+            rank = textBox1.Text;
+            if (!string.IsNullOrWhiteSpace(rank)) {
+                if (!string.IsNullOrWhiteSpace(directory))
+                {
+                    if (!string.IsNullOrWhiteSpace(chromever))
                     {
+                        profile = chromever.Split('\\').Last();
+                        chromedir = chromever.Replace(profile, "");
+                        chromedir = chromedir.TrimEnd('\\');
                         try
                         {
-                            directory = directory.TrimEnd('\\');
-                            Directory.SetCurrentDirectory(directory);
-                            create_Table();
-
-                            var list = new List<TreeNode>();
-                            LookupChecks(treeView1.Nodes, list);
                             try
                             {
-                                ChromeDriverService service = ChromeDriverService.CreateDefaultService();
-                                service.HideCommandPromptWindow = true;
-                                //string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default");
-                                string path = Environment.ExpandEnvironmentVariables(chromedir);
-                                ChromeOptions options = new ChromeOptions();
-                                options.AddArguments("user-data-dir=" + path);
-                                //options.AddArguments("profile-directory=Default");
-                                options.AddArguments("profile-directory=" + profile);
-                                options.AddArgument("start-maximized");
-                                IWebDriver Chrome = new ChromeDriver(service, options);
+                                directory = directory.TrimEnd('\\');
+                                Directory.SetCurrentDirectory(directory);
+                                create_Table();
 
-                                if (!Amazon_Chrome(Chrome, list, directory))
+                                var list = new List<TreeNode>();
+                                LookupChecks(treeView1.Nodes, list);
+                                int numberOfNodes = list.Count;
+                                if (numberOfNodes > 0)
                                 {
                                     try
+                                    {
+                                        ChromeDriverService service = ChromeDriverService.CreateDefaultService();
+                                        service.HideCommandPromptWindow = true;
+                                        //string path = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default");
+                                        string path = Environment.ExpandEnvironmentVariables(chromedir);
+                                        ChromeOptions options = new ChromeOptions();
+                                        options.AddArguments("user-data-dir=" + path);
+                                        //options.AddArguments("profile-directory=Default");
+                                        options.AddArguments("profile-directory=" + profile);
+                                        options.AddArgument("start-maximized");
+                                        IWebDriver Chrome = new ChromeDriver(service, options);
+
+                                        if (!Amazon_Chrome(Chrome, list, directory))
+                                        {
+                                            try
+                                            {
+                                                Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                                                foreach (var chromeDriverProcess in chromeDriverProcesses)
+                                                {
+                                                    chromeDriverProcess.Kill();
+                                                }
+                                            }
+                                            catch
+                                            { }
+                                        }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                Chrome.Close();
+                                                Chrome.Quit();
+                                                Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
+                                                foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
+                                                {
+                                                    firefoxDriverProcesse.Kill();
+                                                }
+                                            }
+                                            catch
+                                            { }
+                                        }
+                                    }
+                                    catch (WebDriverException ex)
                                     {
                                         Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
                                         foreach (var chromeDriverProcess in chromeDriverProcesses)
                                         {
                                             chromeDriverProcess.Kill();
                                         }
+                                        MessageBox.Show("Chromeユーザ-先が　ありません。");
                                     }
-                                    catch
-                                    { }
                                 }
                                 else
                                 {
-                                    try
-                                    {
-                                        Chrome.Close();
-                                        Chrome.Quit();
-                                        Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                                        foreach (var firefoxDriverProcesse in firefoxDriverProcesses)
-                                        {
-                                            firefoxDriverProcesse.Kill();
-                                        }
-                                    }
-                                    catch
-                                    { }
+                                    MessageBox.Show("カテゴリーを　選択してください。");
                                 }
+
                             }
-                            catch (WebDriverException ex)
+                            catch (DirectoryNotFoundException exception)
                             {
-                                Process[] chromeDriverProcesses = Process.GetProcessesByName("ChromeDriver");
-                                foreach (var chromeDriverProcess in chromeDriverProcesses)
-                                {
-                                    chromeDriverProcess.Kill();
-                                }
-                                MessageBox.Show("Chromeユーザ-先が　ありません。");
+                                string errormsg = exception.ToString();
+                                MessageBox.Show("出力先がありません");
                             }
                         }
-                        catch (DirectoryNotFoundException exception)
+                        catch (System.ComponentModel.Win32Exception exception)
                         {
                             string errormsg = exception.ToString();
                             MessageBox.Show("出力先がありません");
                         }
                     }
-                    catch (System.ComponentModel.Win32Exception exception)
+                    else
                     {
-                        string errormsg = exception.ToString();
-                        MessageBox.Show("出力先がありません");
+                        MessageBox.Show("Chromeユーザ-先に　入力してください。");
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Chromeユーザ-先に　入力してください。");
+                    MessageBox.Show("出力先に　入力してください。");
                 }
-                         
             }
             else
             {
-                MessageBox.Show("出力先に　入力してください。");
-            }
+                MessageBox.Show("取得順位に　入力してください。");
+            }         
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -701,7 +716,7 @@ namespace AmazonProductCheck
                 if (value > 100)
                     textbox.Text = "100";
                 else if (value < 0)
-                    textbox.Text = "0";
+                    textbox.Text = "1";
             }
         }
 
