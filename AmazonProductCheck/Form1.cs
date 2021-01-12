@@ -27,18 +27,35 @@ namespace AmazonProductCheck
             InitializeComponent();
         }
         System.Data.DataTable dtResult;
+        string chromepath;
         async private void Form1_Load(object sender, EventArgs e)
         {
            string path = System.IO.Path.GetDirectoryName(Application.ExecutablePath);
             // Determine whether the directory exists.
-            if (Directory.Exists(path+"\\Output"))
+            if (Directory.Exists(path + "\\Output"))
             {
                 textBox2.Text = path + "\\Output";
             }
+            else
+            {
+                // Try to create the directory.
+                DirectoryInfo di = Directory.CreateDirectory(path + "\\Output");
+                textBox2.Text = di.FullName;
+            }
 
-            // Try to create the directory.
-            DirectoryInfo di = Directory.CreateDirectory(path + "\\Output");
-            textBox2.Text = di.FullName;
+            chromepath = path + "\\ChromeProfile.txt";
+            if (!File.Exists(chromepath))
+            { // Create a file to write to   
+                using (StreamWriter sw = File.CreateText(chromepath)) { }
+            }
+
+            using (StreamReader sr = File.OpenText(chromepath)) {
+                string s;
+                while ((s = sr.ReadLine()) != null)
+                {
+                    textBox3.Text = s;
+                }
+            }
 
             this.MaximizeBox = false;
             Process[] firefoxDriverProcesses = Process.GetProcessesByName("ChromeDriver");
@@ -592,6 +609,15 @@ namespace AmazonProductCheck
             return dt;
         }
 
+        public void ChromeProfile_Tofile(string traceText)
+        {
+            StreamWriter sw = new StreamWriter(chromepath , false, System.Text.Encoding.GetEncoding("Shift_Jis"));
+            sw.AutoFlush = true;
+            Console.SetOut(sw);
+            Console.Write(traceText);
+            sw.Close();
+            sw.Dispose();
+        }
         private void button2_Click(object sender, EventArgs e)
         {
             string directory = string.Empty;
@@ -636,6 +662,7 @@ namespace AmazonProductCheck
                                         options.AddArgument("start-maximized");
                                         IWebDriver Chrome = new ChromeDriver(service, options);
 
+                                        ChromeProfile_Tofile(chromever);
                                         if (!Amazon_Chrome(Chrome, list, directory))
                                         {
                                             try
